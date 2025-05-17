@@ -1,0 +1,39 @@
+On both login & compute node:
+-----------------------------
+dnf -y install epel-release
+export MUNGEUSER=2001
+sudo groupadd -g $MUNGEUSER munge
+sudo useradd -m -c "MUNGE Uid 'N' Gid Emporium" -d /var/lib/munge -u $MUNGEUSER -g munge -s /sbin/nologin munge
+export SLURMUSER=2002
+sudo groupadd -g $SLURMUSER slurm
+sudo useradd -m -c "SLURM Workload Manager" -d /var/lib/slurm -u $SLURMUSER -g slurm -s /bin/bash slurm
+
+login node: sudo dnf install munge slurm slurm-slurmctld slurm-slurmd slurm-slurmdbd
+compute node: sudo df install munge slurm slurm-slurmd
+
+sudo mkdir /run/munge / run/slurm/
+
+sudo chown -R munge: /etc/munge/ /var/log/munge/ /var/lib/munge/ /run/munge/ 
+sudo chmod 0700 /etc/munge/ /var/log/munge/ /var/lib/munge/ /run/munge/
+
+sudo chown -R slurm: /etc/slurm/ /var/log/slurm/ /var/lib/slurm/ /run/slurm/ /var/spool/slurm/ 
+sudo chmod 0755 /etc/slurm/ /var/log/slurm/ /var/lib/slurm/ /run/slurm/ /var/spool/slurm/
+
+cd /etc/munge/
+
+if not present then 
+       sudo -u munge /usr/sbin/mungekey --verbose
+end if
+
+sudo scp /etc/munge/munge.key
+
+sudo systemctl enable --now munge
+
+---
+yum -y install mariadb-server
+
+mysql -u root -p <enter>
+create database slurm_acct_db;
+grant all on slurm_act_db.* to 'slurm'@'localhost' identified by 'slurm@1234' with grant option;
+flush privileges;
+exit;
